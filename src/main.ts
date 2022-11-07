@@ -24,6 +24,38 @@ class Slider {
     this.sliders = [...sliders];
   }
 
+  generateArch = (radius: number) => {
+
+    /*
+      M centerX (centerY-outerRadius)
+      A outerRadius outerRadius 0 1 0 centerX (centerY+outerRadius)
+      A outerRadius outerRadius 0 1 0 centerX (centerY-outerRadius)
+      Z
+      M centerX (centerY-innerRadius)
+      A innerRadius innerRadius 0 1 1 centerX (centerY+innerRadius)
+      A innerRadius innerRadius 0 1 1 centerX (centerY-innerRadius)
+      Z
+    */
+
+    let centerX = this.width / 2;
+    let centerY = this.heigth / 2;
+
+    let outerRadius = radius;
+    let innerRadius = radius - 15;
+
+    return `
+      M ${centerX} ${centerY - outerRadius}
+      A ${outerRadius} ${outerRadius} 0 1 0 ${centerX} ${centerY + outerRadius}
+      A ${outerRadius} ${outerRadius} 0 1 0 ${centerX} ${centerY - outerRadius}
+      Z
+      M ${centerX} ${centerY - innerRadius}
+      A ${innerRadius} ${innerRadius} 0 1 1 ${centerX} ${centerY + innerRadius}
+      A ${innerRadius} ${innerRadius} 0 1 1 ${centerX} ${centerY - innerRadius}
+      Z
+    `
+
+  }
+
   draw = () => {
     
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -41,15 +73,29 @@ class Slider {
 
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-        const slider = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        slider.setAttribute('cx', "" + this.width / 2);
-        slider.setAttribute('cy', "" + this.heigth / 2);
-        slider.setAttribute('r', stepper.toString());
-        slider.setAttribute('stroke-width', '18');
-        slider.setAttribute('stroke-dasharray', '7 1');
-        slider.setAttribute('stroke', s.color);
-        slider.setAttribute('fill', 'transparent');
-        group.appendChild(slider);
+        
+          console.log(this.generateArch(stepper))
+
+          const slider = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          slider.setAttribute('d', this.generateArch(stepper))
+          slider.setAttribute('fill', s.color);
+          slider.setAttribute('stroke-dasharray', '7 1');
+
+          slider.addEventListener('click', () => {
+            console.log('arch clicked')
+          })
+
+          /*
+          const slider = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          slider.setAttribute('cx', "" + this.width / 2);
+          slider.setAttribute('cy', "" + this.heigth / 2);
+          slider.setAttribute('r', stepper.toString());
+          slider.setAttribute('stroke-width', '18');
+          slider.setAttribute('stroke-dasharray', '7 1');
+          slider.setAttribute('stroke', s.color);
+          slider.setAttribute('fill', 'transparent');*/
+          group.appendChild(slider);
+        
 
         const sliderButton = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         sliderButton.id = `slider-${i}`;
