@@ -11,12 +11,22 @@ interface SliderVariable {
   step?: number;
 }
 
+interface Coordinates {
+  x: number;
+  y: number;
+}
+
 class Slider {
 
   container: string;
   width: number;
   heigth: number
   sliders: SliderVariable[];
+
+  private svg!: SVGElement;
+  private slidersInfo: SVGElement[] = [];
+  private activeSlider!: SVGElement;
+  private sliderRotationOffset: number = 90;
 
   constructor(
     container: string,
@@ -30,34 +40,75 @@ class Slider {
     this.sliders = [...sliders];
   }
 
-  generateArch = (radius: number) => {
+  // hover slider
+  generateArch = (x: number, y: number, radius: number) => {    
+    let startAngle = 0;
+    let endAngle = 150;
 
-    let centerX = this.width / 2;
-    let centerY = this.heigth / 2;
+    let start = this.polarToCartesian(x, y, radius, endAngle)
+    let end = this.polarToCartesian(x, y, radius, startAngle)
+    let arc = (endAngle - startAngle <= 180) ? 0 : 1;
 
     return `
-      M ${centerX}, ${centerY - radius}
-      A ${radius}, ${radius}, 0 1 0, ${centerX}, ${centerY + radius}    
+      M ${start.x} ${start.y}
+      A ${radius} ${radius} 0 ${arc} 0 ${end.x} ${end.y}
     `
   }
 
-  filterClick = (element: SVGElement, x: number, y: number): boolean => {
+  // Converts a polar coordinate (r,theta) to cartesian (x,y).
+  polarToCartesian = (centerX: number, centerY: number, radius: number, angleDegree: number): Coordinates => {
 
-    var dim = element.getBoundingClientRect();
+    const theta = angleDegree * (Math.PI / 360);
 
-    //console.log(slider.getAttribute('cx'), slider.getAttribute('cy'), slider.getAttribute('r'));
+    let x = centerX + (radius * Math.cos(theta));
+    let y = centerY + (radius * Math.sin(theta));
 
-    return true;
+    return { x, y }
+  }
+
+  // Converts a polar coordinate
+  sliderButtonCenter = (angle: number, r: number): Coordinates => {
+    const x = this.width / 2 + Math.cos(angle) * r;
+    const y = this.heigth / 2 + Math.sin(angle) * r;
+    return { x, y };
   }
 
   draw = () => {
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('id', 'slider-holder')
     svg.setAttribute('width', "" + this.heigth)
     svg.setAttribute('height', "" + this.heigth)
+    svg.style.background = '#eee';
+    svg.setAttribute('transform', `rotate(-${this.sliderRotationOffset})`);
+
+    svg.addEventListener('mousedown', this.mouseEvent)
+    svg.addEventListener('touchstart', this.mouseEvent)
+
+    this.svg = svg;
 
     let stepper = this.sliders.length * 40 + 20;
     let stepperCircle = 20;
+
+    const center = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    center.setAttribute('cx', "" + this.width / 2);
+    center.setAttribute('cy', "" + this.heigth / 2);
+    center.setAttribute('r', '8');
+    center.setAttribute('fill', 'red');
+    svg.appendChild(center)
+
+    const hline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    hline.setAttribute('d', `M 0 ${this.heigth / 2} h ${this.width}`);    
+    hline.setAttribute('stroke-width', '2');
+    hline.setAttribute('stroke', 'red');
+    svg.appendChild(hline)
+
+    const vline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    vline.setAttribute('d', `M ${this.width / 2} 0 v ${this.heigth}`);    
+    vline.setAttribute('stroke-width', '2');
+    vline.setAttribute('stroke', 'red');
+    svg.appendChild(vline)
+
 
     // we iterate sliders
     this.sliders.map((s: SliderVariable, i: number) => {
@@ -75,38 +126,32 @@ class Slider {
       slider.setAttribute('stroke', 'lightgray');
       slider.setAttribute('fill', 'transparent');
 
+      this.slidersInfo.push(slider);
+
 
       const progressSlider: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      progressSlider.setAttribute('d', this.generateArch(stepper))
+      progressSlider.setAttribute('d', this.generateArch(this.width / 2, this.heigth / 2, stepper))
       progressSlider.setAttribute('stroke-width', '18');
       progressSlider.setAttribute('stroke-dasharray', '7 1');
       progressSlider.setAttribute('stroke', s.color);
       progressSlider.setAttribute('fill', 'transparent');
-      progressSlider.setAttribute('transform', `rotate(180, ${this.width / 2}, ${this.heigth / 2})`);
+      //progressSlider.setAttribute('transform', `rotate(-90, ${this.width / 2}, ${this.heigth / 2})`);
 
-
-      [slider, progressSlider].map((slidr) => slidr.addEventListener('click', (evt) => {
-        var e: any = evt.target;
-        var dim = e.getBoundingClientRect();
-        console.log('dim', dim.left, dim.right)
-        console.log(`${s.name} clicked`, 'X: ' + (evt.clientX - dim.left), 'Y: ' + (evt.clientY - dim.top))
-        /*
-        if (this.filterClick(slider, evt.clientX, evt.clientY)) {
-          console.log(`${s.name} clicked`, evt.clientX, evt.clientY)
-        }*/
-      }))
       group.appendChild(slider);
       group.appendChild(progressSlider);
 
 
+      const sliderButtonLocation = this.sliderButtonCenter(50 * ((Math.PI * 2) / 360), <any>slider.getAttribute('r'));
+
       const sliderButton = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       sliderButton.id = `slider-${i}`;
-      sliderButton.setAttribute('cx', "" + this.width / 2);
-      sliderButton.setAttribute('cy', "" + ((this.heigth / (this.sliders.length * 2)) + stepperCircle));
+      sliderButton.setAttribute('cx', "" + sliderButtonLocation.x);
+      sliderButton.setAttribute('cy', "" + sliderButtonLocation.y);
       sliderButton.setAttribute('r', '13');
       sliderButton.setAttribute('fill', 'white');
       sliderButton.setAttribute('stroke-width', '1');
       sliderButton.setAttribute('stroke', 'gray');
+      //sliderButton.setAttribute('transform', `rotate(-90, ${this.width / 2}, ${this.heigth / 2})`);
       group.appendChild(sliderButton);
 
 
@@ -118,6 +163,65 @@ class Slider {
     })
 
     document.querySelector<HTMLDivElement>(this.container)!.appendChild(svg);
+  }
+
+  private mouseEvent = (evt: any): Coordinates | null => {
+    var e: any = evt.target;
+
+    var dim = this.svg.getBoundingClientRect();
+
+    // we get mouse event coordinates
+    let clientX = evt.clientX;
+    let clientY = evt.clientY;
+
+    // if touch event
+    if (window.TouchEvent && evt instanceof TouchEvent) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+
+    let x = clientX - dim.left;
+    let y = clientY - dim.top;
+
+
+    // we get mouse angle
+    let angle = Math.atan2(y - this.heigth / 2, x - this.width / 2);    
+    let degrees = angle / (Math.PI / 180) + this.sliderRotationOffset;
+    console.log(degrees)
+
+    if (angle > - (Math.PI * 2) / 2 && angle < - (Math.PI * 2) / 4) 
+    {
+        angle = angle + (Math.PI * 2) * 1.25;
+    } 
+    else 
+    {
+        angle = angle + (Math.PI * 2) * 0.25;
+    }
+
+    //console.log(id, x, y, 'Kot ' + angle * 0.999)
+    this.findSlider(x, y);
+
+    return {x, y}
+  }
+
+  private findSlider(x: number, y: number) {
+    const distanceFromCenter = Math.hypot(x - this.width/2, y - this.heigth/2);
+    
+    let shortestDistance = Infinity;
+    let selectedSlider = -1;
+    this.slidersInfo.map((s, i) => {
+   
+      let distance = Math.abs(distanceFromCenter - parseInt(s.getAttribute('r') || ''));
+      
+      if (shortestDistance > distance) {
+        shortestDistance = distance;
+        selectedSlider = i;
+      }
+
+    });
+
+    this.activeSlider = this.slidersInfo[selectedSlider];
+    return this.activeSlider;
   }
 }
 
