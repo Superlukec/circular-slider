@@ -43,16 +43,16 @@ export class Slider {
 
     this.container = container;
     this.radius = radius;
-    this.width = containerDOM.offsetWidth;
+    this.width = containerDOM.offsetWidth - 200;
     this.heigth = containerDOM.offsetHeight;
     this.sliders = [...sliders];
 
     this.legend = document.createElement('div');
     this.legend.setAttribute('id', 'legend');
-    //this.legend.style.width = '200px';
+    this.legend.style.width = '200px';
 
 
-    //containerDOM!.appendChild(this.legend);
+    containerDOM!.appendChild(this.legend);
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('id', 'slider-holder')
@@ -265,7 +265,6 @@ export class Slider {
 
       stepper = sliderCircleSpace * sliderCounter;
       sliderCounter--;
-      //console.log('stepper', stepper)
 
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 

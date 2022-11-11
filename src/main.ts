@@ -3,7 +3,7 @@ import './style.css'
 
 let slider1 = new Slider(
   '#app',
-  200,
+  180,
   [{
     name: 'Transportation',
     value: 350,
