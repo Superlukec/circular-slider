@@ -1,6 +1,10 @@
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
 #app {
     width: 600px;
-    height: 600px;
+    padding: 20px;
     background: rgb(238,238,238);
     background: linear-gradient(90deg, #cacbcd 0%, #efefef 100%);
 }

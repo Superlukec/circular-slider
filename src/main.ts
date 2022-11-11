@@ -6,14 +6,14 @@ let slider1 = new Slider(
   180,
   [{
     name: 'Transportation',
-    value: 350,
-    step: 1,
-    maxValue: 750,
+    value: 750,
+    step: 10,
+    maxValue: 1000,
     minValue: 0,
     color: '#6f508e',
   }, {
     name: 'Food',
-    value: 750,
+    value: 650,
     step: 1,
     maxValue: 1000,
     minValue: 0,

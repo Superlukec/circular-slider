@@ -14,7 +14,6 @@ interface Coordinates {
 
 export class Slider {
 
-  private container!: string;
   private radius!: number;
   private width!: number;
   private heigth!: number
@@ -24,7 +23,6 @@ export class Slider {
   private svg!: SVGElement;
   private slidersInfo: SVGElement[] = [];
   private sliderAngle: number[] = [];
-  private activeSlider!: number;
   private sliderRotationOffset: number = 90;
   private mouseActive: boolean = false;
 
@@ -41,10 +39,9 @@ export class Slider {
 
     containerDOM.style.display = 'flex';
 
-    this.container = container;
     this.radius = radius;
     this.width = containerDOM.offsetWidth - 200;
-    this.heigth = containerDOM.offsetHeight;
+    this.heigth = this.width;
     this.sliders = [...sliders];
 
     this.legend = document.createElement('div');
@@ -53,6 +50,10 @@ export class Slider {
 
 
     containerDOM!.appendChild(this.legend);
+
+    const svgHolder = document.createElement('div');
+    svgHolder.style.textAlign = 'center';
+    
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('id', 'slider-holder')
@@ -69,7 +70,12 @@ export class Slider {
 
     this.svg = svg;
 
-    containerDOM!.appendChild(this.svg);
+    containerDOM!.appendChild(svgHolder);
+    svgHolder.appendChild(this.svg)
+
+    const textLabel = document.createElement('div');
+    textLabel.innerHTML = `<div style="font-style: italic; text-transform: uppercase; font-weight: bold;">Adjust dial to enter expenses</div>`;
+    svgHolder.appendChild(textLabel)
 
     this.sliderAngle = sliders.map((s) => {
       return this.calculateAngleBasedOnValue(s); //Math.floor(Math.random() * 260 + 50);
@@ -87,7 +93,9 @@ export class Slider {
   }
 
   calculateValueBasedOnAngle = (s: SliderVariable, angle: number):number => {
-      return Math.ceil(s.maxValue * angle / 360);
+      let number = s.maxValue * angle / 360;
+
+      return Math.ceil(number / s.step) * s.step;
   }
 
   // progress slider
@@ -161,13 +169,11 @@ export class Slider {
 
     let degrees = this.getMouseAngleInDegree(mouseCoordinates.x, mouseCoordinates.y);
 
-    this.sliderAngle[this.findSlider(mouseCoordinates.x, mouseCoordinates.y)] = degrees;
-
-    console.log(this.calculateValueBasedOnAngle(this.sliders[this.findSlider(mouseCoordinates.x, mouseCoordinates.y)], degrees))
-    console.log('radius', this.findSlider(mouseCoordinates.x, mouseCoordinates.y), this.slidersInfo[this.findSlider(mouseCoordinates.x, mouseCoordinates.y)])
+    let sliderIndex = this.findSlider(mouseCoordinates.x, mouseCoordinates.y);
+    this.sliderAngle[sliderIndex] = degrees;
+    this.sliders[sliderIndex].value = this.calculateValueBasedOnAngle(this.sliders[sliderIndex], degrees);
 
     this.draw();
-
 
   }
 
@@ -180,7 +186,9 @@ export class Slider {
 
     let degrees = this.getMouseAngleInDegree(mouseCoordinates.x, mouseCoordinates.y);
 
-    this.sliderAngle[this.activeSlider] = degrees;
+    let sliderIndex = this.findSlider(mouseCoordinates.x, mouseCoordinates.y);
+    this.sliderAngle[sliderIndex] = degrees;
+    this.sliders[sliderIndex].value = this.calculateValueBasedOnAngle(this.sliders[sliderIndex], degrees);
 
     this.draw();
   }
@@ -205,7 +213,6 @@ export class Slider {
 
     });
 
-    this.activeSlider = selectedSlider;
     return selectedSlider;
   }
 
@@ -232,14 +239,20 @@ export class Slider {
     let elements = '';
 
     this.sliders.map((s) => {
-      elements += '<li>' + s.name + '</li>'
+      elements += `
+        <div style="display: flex; align-items: center;">
+          <div style="font-weight: bold; font-size: 2rem;">
+            $${s.value}
+          </div>
+          <div style="margin-left: 15px; display: flex; align-items: end;">
+            <div style="width: 12px; height: 7px; background: ${s.color}"></div>
+            <div style="margin-left: 10px; font-size: .9rem;">${s.name}</div>
+          </div>
+        </div>
+      `;
     })
     
-    this.legend.innerHTML = `
-      <ul>
-        ${elements}
-      </ul>
-    `;
+    this.legend.innerHTML = elements;
   
 
 
