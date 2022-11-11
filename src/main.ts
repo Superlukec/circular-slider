@@ -2,44 +2,43 @@ import { Slider } from './sliderClass';
 import './style.css'
 
 let slider1 = new Slider(
-  '#slider-holder',
-  600,
-  600,
+  '#app',
+  200,
   [{
     name: 'Transportation',
-    value: 750,
+    value: 350,
     step: 1,
-    maxValue: 1000,
+    maxValue: 750,
     minValue: 0,
-    color: 'purple',
+    color: '#6f508e',
   }, {
     name: 'Food',
     value: 750,
     step: 1,
     maxValue: 1000,
     minValue: 0,
-    color: 'blue',
+    color: '#1d8fc4',
   }, {
     name: 'Insurance',
     value: 500,
     step: 10,
     maxValue: 1000,
     minValue: 0,
-    color: 'green',
+    color: '#5c9d31',
   }, {
     name: 'Entertainment',
     value: 800,
     step: 1,
     maxValue: 1000,
     minValue: 0,
-    color: 'orange',
+    color: '#d88227',
   }, {
     name: 'Health Care',
     value: 200,
     step: 100,
-    maxValue: 1000,
+    maxValue: 400,
     minValue: 0,
-    color: 'red',
+    color: '#da5648',
   }]
 );
 slider1.draw();
