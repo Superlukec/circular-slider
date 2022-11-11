@@ -142,7 +142,6 @@ export class Slider {
 
   private getMouseXY = (evt: any): Coordinates => {
 
-    let e: any = evt.target;
     let dim = this.svg.getBoundingClientRect();
 
     // we get mouse event coordinates
@@ -151,8 +150,8 @@ export class Slider {
 
     // if touch event
     if (window.TouchEvent && evt instanceof TouchEvent) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
+      clientX = evt.touches[0].clientX;
+      clientY = evt.touches[0].clientY;
     }
 
     let x = clientX - dim.left;
@@ -222,19 +221,6 @@ export class Slider {
 
     let sliderCircleSpace = (fullCircle / this.sliders.length) / 2;
     let sliderCounter = this.sliders.length;
-
-    /*
-    this.sliders.map((s: SliderVariable) => {
-      console.log(smaller * tmp)
-      tmp--;
-    })*/
-
-
-    /*
-    let calculateDistance = 0;
-
-    this.sliders.length
-    this.width*/
 
     let elements = '';
 
