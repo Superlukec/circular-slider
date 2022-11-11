@@ -31,6 +31,7 @@ export class Slider {
     radius: number,
     sliders: SliderVariable[]) {
 
+    // main container for the whole container
     const containerDOM: HTMLDivElement | null = document.querySelector<HTMLDivElement>(container);
     if (!containerDOM) {
       alert('Element not found');
@@ -44,27 +45,28 @@ export class Slider {
     this.heigth = this.width;
     this.sliders = [...sliders];
 
+    // holder for the legend
     this.legend = document.createElement('div');
     this.legend.setAttribute('id', 'legend');
     this.legend.style.width = '200px';
-
 
     containerDOM!.appendChild(this.legend);
 
     const svgHolder = document.createElement('div');
     svgHolder.style.textAlign = 'center';
     
-
+    // we prepare the SVG
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('id', 'slider-holder')
     svg.setAttribute('width', "" + this.width)
     svg.setAttribute('height', "" + this.heigth)    
     svg.setAttribute('transform', `rotate(-${this.sliderRotationOffset})`);
 
-    svg.addEventListener('mousedown', this.mouseEventStart)
-    svg.addEventListener('touchstart', this.mouseEventStart)
-    svg.addEventListener('mousemove', this.mouseMove)
-    svg.addEventListener('touchmove', this.mouseMove)
+    // mouse and touch events
+    svg.addEventListener('mousedown', (evt) => {this.mouseEventStart(evt)})
+    svg.addEventListener('touchstart', (evt) => {this.mouseEventStart(evt)})
+    svg.addEventListener('mousemove', (evt) => {this.mouseEventStart(evt, true)})
+    svg.addEventListener('touchmove', (evt) => {this.mouseEventStart(evt, true)})
     window.addEventListener('mouseup', this.mouseEventEnd);
     window.addEventListener('touchend', this.mouseEventEnd);
 
@@ -73,6 +75,7 @@ export class Slider {
     containerDOM!.appendChild(svgHolder);
     svgHolder.appendChild(this.svg)
 
+    // we add the text behind the slider
     const textLabel = document.createElement('div');
     textLabel.innerHTML = `<div style="font-style: italic; text-transform: uppercase; font-weight: bold;">Adjust dial to enter expenses</div>`;
     svgHolder.appendChild(textLabel)
@@ -83,6 +86,7 @@ export class Slider {
 
   }
 
+  // helper function - get angle based on the value
   calculateAngleBasedOnValue = (s: SliderVariable) => {
 
     let angle = s.value * 360 / s.maxValue;
@@ -92,14 +96,15 @@ export class Slider {
     return angle;
   }
 
+  // helper function  - get the value based on the angle
   calculateValueBasedOnAngle = (s: SliderVariable, angle: number):number => {
       let number = s.maxValue * angle / 360;
 
       return Math.ceil(number / s.step) * s.step;
   }
 
-  // progress slider
-  private generateArcForActiveSlider = (x: number, y: number, radius: number, endAngle: number) => {
+  // progress slider arc generator
+  private generateArcForactivePath = (x: number, y: number, radius: number, endAngle: number) => {
     let startAngle = 0;
 
     let start = this.polarToCartesian(x, y, radius, endAngle)
@@ -124,14 +129,15 @@ export class Slider {
   }
 
   // Converts a polar coordinate
-  private sliderButtonCenter = (angle: number, r: number): Coordinates => {
+  private sliderButtonCenterCalculate = (angle: number, r: number): Coordinates => {
     const x = this.width / 2 + Math.cos(angle) * r;
     const y = this.heigth / 2 + Math.sin(angle) * r;
     return { x, y };
   }
 
+  // based on the coordinates X and Y we get angle in degree
   private getMouseAngleInDegree = (x: number, y: number): number => {
-    // we get mouse angle
+    // we get the mouse angle
     let angle = Math.atan2(y - this.heigth / 2, x - this.width / 2);
     let degrees = angle / (Math.PI / 180) + this.sliderRotationOffset;
 
@@ -140,6 +146,7 @@ export class Slider {
     return degrees;
   }
 
+  // we get mouse X,Y position on the SVG
   private getMouseXY = (evt: any): Coordinates => {
 
     let dim = this.svg.getBoundingClientRect();
@@ -160,42 +167,35 @@ export class Slider {
     return { x, y }
   }
 
-  private mouseEventStart = (evt: any) => {
+  // we catch mouse down and mouse move event
+  private mouseEventStart = (evt: any, mouseMoveEvent: boolean = false) => {
 
-    this.mouseActive = true;
-
-    let mouseCoordinates = this.getMouseXY(evt);
-
-    let degrees = this.getMouseAngleInDegree(mouseCoordinates.x, mouseCoordinates.y);
-
-    let sliderIndex = this.findSlider(mouseCoordinates.x, mouseCoordinates.y);
-    this.sliderAngle[sliderIndex] = degrees;
-    this.sliders[sliderIndex].value = this.calculateValueBasedOnAngle(this.sliders[sliderIndex], degrees);
-
-    this.draw();
-
-  }
-
-  private mouseMove = (evt: any) => {
-    if (!this.mouseActive) {
-      return;
+    if (!mouseMoveEvent) {
+      this.mouseActive = true;
+    } else {
+      if (!this.mouseActive) {
+        return;
+      }
     }
 
     let mouseCoordinates = this.getMouseXY(evt);
 
     let degrees = this.getMouseAngleInDegree(mouseCoordinates.x, mouseCoordinates.y);
-
     let sliderIndex = this.findSlider(mouseCoordinates.x, mouseCoordinates.y);
+
+    // we save the info about the current slider position
     this.sliderAngle[sliderIndex] = degrees;
     this.sliders[sliderIndex].value = this.calculateValueBasedOnAngle(this.sliders[sliderIndex], degrees);
 
     this.draw();
-  }
 
+  }
+  
   private mouseEventEnd = () => {
     this.mouseActive = false;
   }
 
+  // based on the coordinates we find the index number of the slider
   private findSlider(x: number, y: number): number {
     const distanceFromCenter = Math.hypot(x - this.width / 2, y - this.heigth / 2);
 
@@ -215,12 +215,8 @@ export class Slider {
     return selectedSlider;
   }
 
-  draw = () => {
-
-    let fullCircle = this.radius * 2;
-
-    let sliderCircleSpace = (fullCircle / this.sliders.length) / 2;
-    let sliderCounter = this.sliders.length;
+  // we prepare the legend
+  drawLegend = () => {    
 
     let elements = '';
 
@@ -231,21 +227,32 @@ export class Slider {
             $${s.value}
           </div>
           <div style="margin-left: 15px; display: flex; align-items: end;">
-            <div style="width: 12px; height: 7px; background: ${s.color}"></div>
-            <div style="margin-left: 10px; font-size: .9rem;">${s.name}</div>
+            <div style="
+                  width: 12px; height: 7px; background: ${s.color};"></div>
+            <div style="margin-left: 10px; font-size: .7rem;">${s.name}</div>
           </div>
         </div>
       `;
     })
-    
-    this.legend.innerHTML = elements;
-  
+
+    return elements;
+  }
+
+  // main function for drawing sliders
+  draw = () => {
+
+    // we calculate the space and size between sliders
+    let fullCircle = this.radius * 2;
+    let sliderCircleSpace = (fullCircle / this.sliders.length) / 2;
+    let sliderCounter = this.sliders.length;
+        
+    this.legend.innerHTML = this.drawLegend(); 
 
 
     // we reset the view
     this.svg.innerHTML = '';
 
-    // gradient definition
+    // gradient definition for the buttons
     let defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     defs.innerHTML = `
     <radialGradient id="radialGradient">
@@ -257,50 +264,57 @@ export class Slider {
     this.svg.appendChild(defs)
 
     // space between sliders
-    let stepper = 0;
+    let radius;
 
     // we iterate sliders
     this.sliders.map((s: SliderVariable, i: number) => {
 
-      stepper = sliderCircleSpace * sliderCounter;
+      radius = sliderCircleSpace * sliderCounter;
       sliderCounter--;
 
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
+      // we draw the slider background
       const slider: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       slider.setAttribute('id', s.name)
       slider.setAttribute('cx', "" + this.width / 2);
       slider.setAttribute('cy', "" + this.heigth / 2);
-      slider.setAttribute('r', "" + stepper);
+      slider.setAttribute('r', "" + radius);
       slider.setAttribute('stroke-width', '18');
       slider.setAttribute('stroke-dasharray', '7 1');
       slider.setAttribute('stroke', '#c1c1c1');
       slider.setAttribute('fill', 'transparent');
-
-      this.slidersInfo.push(slider);
+      
       group.appendChild(slider);
 
+      // we store information about the slider
+      this.slidersInfo.push(slider);
 
-      const activeSliderBg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      activeSliderBg.setAttribute('id', `progress-slider-${i}`);
-      activeSliderBg.setAttribute('d', this.generateArcForActiveSlider(this.width / 2, this.heigth / 2, stepper, this.sliderAngle[i]))
-      activeSliderBg.setAttribute('stroke-width', '18');
-      activeSliderBg.setAttribute('stroke', s.color);
-      activeSliderBg.setAttribute('opacity', '.7');
-      activeSliderBg.setAttribute('fill', 'transparent');
-      group.appendChild(activeSliderBg);
+      // we draw active path
+      const activePathBackground: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      activePathBackground.setAttribute('id', `progress-slider-${i}`);
+      activePathBackground.setAttribute('d', this.generateArcForactivePath(this.width / 2, this.heigth / 2, radius, this.sliderAngle[i]))
+      activePathBackground.setAttribute('stroke-width', '18');
+      activePathBackground.setAttribute('stroke', s.color);
+      activePathBackground.setAttribute('opacity', '.7');
+      activePathBackground.setAttribute('fill', 'transparent');
+      
+      group.appendChild(activePathBackground);
 
-      const activeSlider: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      activeSlider.setAttribute('id', `progress-slider-${i}`);
-      activeSlider.setAttribute('d', this.generateArcForActiveSlider(this.width / 2, this.heigth / 2, stepper, this.sliderAngle[i]))
-      activeSlider.setAttribute('stroke-width', '18');
-      activeSlider.setAttribute('stroke-dasharray', '7 1');
-      activeSlider.setAttribute('stroke', s.color);
-      activeSlider.setAttribute('fill', 'transparent');
-      group.appendChild(activeSlider);
+      const activePath: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      activePath.setAttribute('id', `progress-slider-${i}`);
+      activePath.setAttribute('d', this.generateArcForactivePath(this.width / 2, this.heigth / 2, radius, this.sliderAngle[i]))
+      activePath.setAttribute('stroke-width', '18');
+      activePath.setAttribute('stroke-dasharray', '7 1');
+      activePath.setAttribute('stroke', s.color);
+      activePath.setAttribute('fill', 'transparent');
+      
+      group.appendChild(activePath);
 
-      const sliderButtonLocation = this.sliderButtonCenter(this.sliderAngle[i] * ((Math.PI * 2) / 360), <any>slider.getAttribute('r'));
+      // we calculate the center of the button
+      const sliderButtonLocation = this.sliderButtonCenterCalculate(this.sliderAngle[i] * ((Math.PI * 2) / 360), <any>slider.getAttribute('r'));
 
+      // we add slider button on top of the slider path
       const sliderButton = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       sliderButton.setAttribute('cx', "" + sliderButtonLocation.x);
       sliderButton.setAttribute('cy', "" + sliderButtonLocation.y);
@@ -308,11 +322,11 @@ export class Slider {
       sliderButton.setAttribute('fill', `url('#radialGradient')`);
       sliderButton.setAttribute('stroke-width', '1');
       sliderButton.setAttribute('stroke', '#c8c8c8');
+      sliderButton.style.cursor = 'pointer';
+
       group.appendChild(sliderButton);
 
       this.svg.appendChild(group);
-
-      //stepper -= 40;
     })
 
 
