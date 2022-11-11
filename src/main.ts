@@ -2,7 +2,7 @@ import { Slider } from './sliderClass';
 import './style.css'
 
 let slider1 = new Slider(
-  '#app',
+  '#slider-holder',
   600,
   600,
   [{
