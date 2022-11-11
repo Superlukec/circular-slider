@@ -23,7 +23,7 @@ export class Slider {
   private svg!: SVGElement;
   private slidersInfo: SVGElement[] = [];
   private sliderAngle: number[] = [];
-  private activeSlider!: SVGElement;
+  private activeSlider!: number;
   private sliderRotationOffset: number = 90;
   private mouseActive: boolean = false;
   
@@ -98,7 +98,6 @@ export class Slider {
     this.svg.innerHTML = '';
 
     let stepper = this.sliders.length * 40 + 20;
-    let stepperCircle = 20;
 
     // we iterate sliders
     this.sliders.map((s: SliderVariable, i: number) => {
@@ -144,7 +143,6 @@ export class Slider {
       this.svg.appendChild(group);
 
       stepper -= 40
-      stepperCircle += 40
     })
 
     document.querySelector<HTMLDivElement>(this.container)!.appendChild(this.svg);
@@ -183,9 +181,6 @@ export class Slider {
 
     let degrees = this.getMouseAngleInDegree(x, y);
 
-    //console.log(id, x, y, 'Kot ' + angle * 0.999)
-    this.findSlider(x, y);
-
     this.sliderAngle[this.findSlider(x, y)] = degrees;
 
     this.draw();
@@ -216,10 +211,7 @@ export class Slider {
 
     let degrees = this.getMouseAngleInDegree(x, y);
 
-    //console.log(id, x, y, 'Kot ' + angle * 0.999)
-    this.findSlider(x, y);
-
-    this.sliderAngle[this.findSlider(x, y)] = degrees;
+    this.sliderAngle[this.activeSlider] = degrees;
 
     this.draw();
   }
@@ -244,7 +236,7 @@ export class Slider {
 
     });
 
-    this.activeSlider = this.slidersInfo[selectedSlider];
+    this.activeSlider = selectedSlider;
     return selectedSlider;
   }
 }
