@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circular Slider - Example</title>
+  <link rel="stylesheet" href="main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
+  
+  <script type="module">
+    import { Slider } from "../dist/slider-class.js";
+
+    let slider1 = new Slider(
+      '#slider',
+      180,
+      [{
+        name: 'Transportation',
+        value: 750,
+        step: 10,
+        maxValue: 1000,
+        minValue: 0,
+        color: '#6f508e',
+      }, {
+        name: 'Food',
+        value: 650,
+        step: 1,
+        maxValue: 1000,
+        minValue: 0,
+        color: '#1d8fc4',
+      }, {
+        name: 'Insurance',
+        value: 500,
+        step: 10,
+        maxValue: 1000,
+        minValue: 0,
+        color: '#5c9d31',
+      }, {
+        name: 'Entertainment',
+        value: 800,
+        step: 1,
+        maxValue: 1000,
+        minValue: 0,
+        color: '#d88227',
+      }, {
+        name: 'Health Care',
+        value: 200,
+        step: 100,
+        maxValue: 400,
+        minValue: 0,
+        color: '#da5648',
+      }]
+    );
+    slider1.draw();
+  </script>
+</head>
+
+<body>
+  <div id="slider"></div>
+</body>
+
+</html>
