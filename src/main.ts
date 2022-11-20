@@ -7,9 +7,9 @@ let slider1 = new Slider(
   [{
     name: 'Transportation',
     value: 750,
-    step: 10,
+    step: 50,
     maxValue: 1000,
-    minValue: 0,
+    minValue: 250,
     color: '#6f508e',
   }, {
     name: 'Food',

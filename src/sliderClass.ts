@@ -89,7 +89,17 @@ export class Slider {
   // helper function - get angle based on the value
   calculateAngleBasedOnValue = (s: SliderVariable) => {
 
-    let angle = s.value * 360 / s.maxValue;
+    let fullCircle = 360;
+    let maxVal = s.maxValue;
+    let value = s.value;
+
+    if (s?.minValue > 0) {
+      // if MIN value we calculate the right value
+      maxVal -= s.minValue; 
+      value -= s.minValue;
+    }
+
+    let angle = value * fullCircle / maxVal;
 
     if (angle === 360) angle = 359;
 
@@ -98,9 +108,21 @@ export class Slider {
 
   // helper function  - get the value based on the angle
   calculateValueBasedOnAngle = (s: SliderVariable, angle: number):number => {
-      let number = s.maxValue * angle / 360;
 
-      return Math.ceil(number / s.step) * s.step;
+      let fullCircle = 360;
+      let maxVal = s.maxValue;
+
+      if (s?.minValue > 0) {
+        // if MIN value we calculate the right value
+        maxVal -= s.minValue; 
+      }
+
+      let calculateValue = (maxVal * angle / fullCircle)
+      calculateValue += s.minValue;
+
+      let calculatedValueWithStep = Math.ceil(calculateValue / s.step) * s.step;
+
+      return calculatedValueWithStep;
   }
 
   // progress slider arc generator
@@ -218,11 +240,10 @@ export class Slider {
   // we prepare the legend
   drawLegend = () => {    
 
-    let elements = '';
+    let elements = '<div style="display:grid; grid-template-columns: 90px 1fr;">';
 
     this.sliders.map((s) => {
       elements += `
-        <div style="display: flex; align-items: center;">
           <div style="font-weight: bold; font-size: 2rem;">
             $${s.value}
           </div>
@@ -231,9 +252,10 @@ export class Slider {
                   width: 12px; height: 7px; background: ${s.color};"></div>
             <div style="margin-left: 10px; font-size: .7rem;">${s.name}</div>
           </div>
-        </div>
       `;
     })
+
+    elements += '</div>';
 
     return elements;
   }
